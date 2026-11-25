@@ -147,6 +147,23 @@ pytest -q
 覆盖 FASTA 校验、ORF 算法、DB 读写、任务运行器、三个工具、Agent 循环（用 mock LLM，无需真实 key）、
 API 接口。
 
+## 调试（VS Code）
+
+仓库已带 `.vscode/launch.json`，用 VS Code 打开项目后：
+
+1. 左下角选择解释器为 `.venv`（或按 `Ctrl+Shift+P` → `Python: Select Interpreter`）。
+2. 切到「运行和调试」面板，选一个配置后按 `F5`：
+   - **调试后端 (FastAPI)**：启动后端（注意：**不带 `--reload`**，这样断点才可靠）。在 `app/*.py`
+     里打断点，然后浏览器访问 <http://127.0.0.1:8000> 发一条消息，断点就会命中 `agent.py` 的
+     `run_agent` 循环，可单步看「思考 → 调工具 → 继续思考」全过程。
+   - **调试 seq_stats / find_orf 脚本**：直接以子进程方式调试分析脚本（`app/*.py` 与 `scripts/*.py`
+     是不同进程，后端跑任务时断点打不进 `scripts/`，要用这两个配置单独调）。
+   - **调试测试 (pytest)**：单步调试某个测试（把 `launch.json` 里 `-v` 改成具体测试名即可只跑它）。
+
+> 提示：`seq_stats.py` / `find_orf.py` 内有 3–5 秒 `time.sleep`，单步调试时会在这里停几秒，属正常。
+> 想在**不发真实 LLM 请求**的情况下调试 Agent 循环，可在 `tests/test_agent.py` 的 mock 上打断点，
+> 用「调试测试」跑 `test_agent_success_path`。
+
 ## 取舍与未完成项
 
 **做的取舍**
