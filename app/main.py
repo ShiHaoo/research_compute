@@ -1,8 +1,14 @@
 """FastAPI 应用：托管静态前端 + 会话/消息/聊天(SSE)接口。"""
 import asyncio
 import json
+import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
+
+# 允许直接 `python app/main.py` 运行：此时脚本目录 app/ 是 sys.path[0]，
+# 把项目根也加进去，`from app import ...` 才能解析
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
@@ -105,3 +111,9 @@ async def chat(req: ChatRequest):
         await task
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="127.0.0.1", port=8000)
