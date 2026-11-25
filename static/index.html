@@ -1,5 +1,32 @@
 <!doctype html>
 <html lang="zh">
-<head><meta charset="utf-8"><title>科研计算任务助手</title></head>
-<body>Research Compute Assistant</body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>科研计算任务助手</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>科研计算助手</h1>
+        <button id="new-session" class="new-btn">＋ 新建会话</button>
+      </div>
+      <div id="sessions-list" class="sessions-list"></div>
+    </aside>
+
+    <main class="chat">
+      <header class="chat-header">
+        <span id="session-title">会话</span>
+      </header>
+      <div id="messages" class="messages"></div>
+      <footer class="composer">
+        <textarea id="chat-input" rows="1" placeholder="输入问题，例如：帮我统计 sample1 的 GC 含量"></textarea>
+        <button id="send-btn" class="send-btn">发送</button>
+      </footer>
+    </main>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
 </html>
