@@ -111,6 +111,8 @@ async def run_agent(session_id: int, llm, send) -> None:
                         })
 
             if turn_tool_calls:
+                if turn_text:
+                    db.add_message(session_id, "assistant", "".join(turn_text), None)
                 db.add_message(session_id, "assistant", "", json.dumps(turn_tool_calls, ensure_ascii=False))
                 continue
 
@@ -118,6 +120,10 @@ async def run_agent(session_id: int, llm, send) -> None:
             if final_text:
                 db.add_message(session_id, "assistant", final_text, None)
             break
+        else:
+            notice = "已达到最大迭代次数（10 次），仍未得到最终回答，请稍后重试。"
+            await send("token", {"delta": notice})
+            db.add_message(session_id, "assistant", notice, None)
 
         await send("done", {})
     except Exception as e:  # noqa: BLE001 - 任何异常都要回给前端

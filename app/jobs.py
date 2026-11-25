@@ -64,6 +64,8 @@ async def execute(job_id: str, cmd: list[str], stdout_path: str, stderr_path: st
 
 async def submit_job(analysis_type: str, filename: str) -> str:
     module = resolve_script(analysis_type)
+    if Path(filename).name != filename:
+        raise ValueError(f"文件名不合法: {filename}")
     cfg = load_config()
     data_file = _abs(cfg.data_dir) / filename
     if not data_file.is_file():

@@ -155,9 +155,7 @@ function handleEvent(event, data) {
   let obj;
   try { obj = JSON.parse(data); } catch { obj = {}; }
 
-  if (event === 'token') {
-    appendAssistant(obj.delta);
-  } else if (event === 'tool_call') {
+  if (event === 'tool_call') {
     pendingToolCard = createToolCard(obj.name, obj.arguments);
   } else if (event === 'tool_result') {
     if (pendingToolCard) {

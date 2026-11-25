@@ -120,6 +120,62 @@ def test_agent_failure_path_reads_log(monkeypatch, tmp_path):
     assert events[-1][0] == "done"
 
 
+def test_agent_max_iterations_notice(monkeypatch, tmp_path):
+    sid = _setup(tmp_path, monkeypatch)
+
+    async def fake_submit(analysis_type, filename):
+        return "任务已提交，job_id=jobX"
+
+    monkeypatch.setitem(tools.TOOL_HANDLERS, "submit_job", fake_submit)
+    script = [[{"kind": "tool_calls", "tool_calls": [
+        {"id": "c1", "name": "submit_job",
+         "arguments": '{"analysis_type":"seq_stats","filename":"sample1.fasta"}'},
+    ]}]]
+
+    events = []
+
+    async def send(event, data):
+        events.append((event, data))
+
+    asyncio.run(agent.run_agent(sid, FakeLLM(script), send))
+
+    texts = [d["delta"] for e, d in events if e == "token"]
+    assert any("最大迭代" in t for t in texts)
+    assert events[-1][0] == "done"
+    assert "最大迭代" in db.list_messages(sid)[-1]["content"]
+
+
+def test_agent_persists_mixed_turn_text(monkeypatch, tmp_path):
+    sid = _setup(tmp_path, monkeypatch)
+
+    async def fake_submit(analysis_type, filename):
+        return "任务已提交，job_id=jobY"
+
+    monkeypatch.setitem(tools.TOOL_HANDLERS, "submit_job", fake_submit)
+    script = [
+        [{"kind": "delta", "content": "我来提交任务。"},
+         {"kind": "tool_calls", "tool_calls": [
+             {"id": "c1", "name": "submit_job",
+              "arguments": '{"analysis_type":"seq_stats","filename":"sample1.fasta"}'},
+         ]}],
+        [{"kind": "delta", "content": "完成了。"}],
+    ]
+
+    events = []
+
+    async def send(event, data):
+        events.append((event, data))
+
+    asyncio.run(agent.run_agent(sid, FakeLLM(script), send))
+
+    msgs = db.list_messages(sid)
+    assert [m["role"] for m in msgs] == ["user", "assistant", "assistant", "assistant"]
+    assert msgs[1]["content"] == "我来提交任务。"
+    assert msgs[1]["tool_calls"] is None
+    assert msgs[2]["tool_calls"] is not None
+    assert msgs[3]["content"] == "完成了。"
+
+
 def test_reconstructs_tool_messages(monkeypatch, tmp_path):
     sid = _setup(tmp_path, monkeypatch)
     db.add_message(sid, "assistant", "", json.dumps([

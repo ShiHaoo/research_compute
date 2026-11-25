@@ -36,6 +36,18 @@ def longest_orf(seq: str) -> tuple[int, int, int] | None:
     return best
 
 
+def format_records(records: list[FastaRecord]) -> list[str]:
+    lines: list[str] = []
+    for r in records:
+        orf = longest_orf(r.sequence)
+        if orf is None:
+            lines.append(f"{r.id}\t未找到完整ORF")
+        else:
+            start, end, length = orf
+            lines.append(f"{r.id}\t{start}\t{end}\t{length}")
+    return lines
+
+
 def main() -> None:
     if len(sys.argv) < 2:
         print("用法: find_orf.py <fasta文件>", file=sys.stderr)
@@ -48,13 +60,8 @@ def main() -> None:
         sys.exit(1)
 
     time.sleep(random.uniform(3, 5))
-    for r in records:
-        orf = longest_orf(r.sequence)
-        if orf is None:
-            print(f"{r.id}\t未找到完整ORF")
-        else:
-            start, end, length = orf
-            print(f"{r.id}\t{start}\t{end}\t{length}")
+    for line in format_records(records):
+        print(line)
 
 
 if __name__ == "__main__":

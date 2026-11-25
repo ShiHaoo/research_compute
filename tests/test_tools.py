@@ -21,6 +21,13 @@ def test_submit_job_rejects_bad_input():
         asyncio.run(tools.submit_job("seq_stats", "missing.fasta"))
 
 
+def test_submit_job_rejects_path_traversal():
+    with pytest.raises(ValueError):
+        asyncio.run(tools.submit_job("seq_stats", "../.env"))
+    with pytest.raises(ValueError):
+        asyncio.run(tools.submit_job("seq_stats", "sub/sample1.fasta"))
+
+
 def test_submit_job_wraps_result(monkeypatch):
     async def fake_submit(analysis_type, filename):
         return "abc123"
